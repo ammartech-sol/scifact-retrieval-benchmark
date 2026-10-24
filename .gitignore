@@ -1,0 +1,16 @@
+# python
+__pycache__/
+*.pyc
+
+# environments and secrets
+.env
+.venv/
+venv/
+
+# editor
+.vscode/
+
+# big files the code can regenerate
+cache/
+*.npy
+*.pkl
