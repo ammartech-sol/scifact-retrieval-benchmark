@@ -3,15 +3,15 @@ import ir_datasets
 
 def load_scifact():
     dataset = ir_datasets.load("beir/scifact/test")
-
+    # the books
     corpus = {}
     for doc in dataset.docs_iter():
         corpus[doc.doc_id] = doc.title + ". " + doc.text
-
+    #the questions
     queries = {}
     for q in dataset.queries_iter():
         queries[q.query_id] = q.text
-
+    #the answer key
     qrels = {}
     for row in dataset.qrels_iter():
         if row.query_id not in qrels:
