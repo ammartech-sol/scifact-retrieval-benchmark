@@ -33,16 +33,41 @@ def ndcg_at_k(ranked, correct, k):
 
     return dcg / ideal                                    # blank 2
 
+def evaluate(search, queries, qrels):
+    recalls = []
+    rrs = []
+    ndcgs = []
+    for query_id in queries:
+        ranked = search(queries[query_id])
+        correct = qrels[query_id]                    # blank 2: this query's answer key
+        recalls.append(recall_at_k(ranked, correct, 10))
+        rrs.append(reciprocal_rank(ranked, correct))
+        ndcgs.append(ndcg_at_k(ranked, correct, 10))
+    return {
+        "recall@10": sum(recalls) / len(recalls),
+        "mrr": sum(rrs) / len(rrs),
+        "ndcg@10": sum(ndcgs) / len(ndcgs),                 # blank 3: same pattern as the two lines above
+    }
+
 
 if __name__ == "__main__":
-    ranked1 = ["X", "A", "Y", "Z", "B", "W", "V", "U", "C", "T"]
-    correct = {"A", "B", "C"}
-    print(recall_at_k(ranked1, correct, 5))    # expect 0.666..., that is 0.667
-    print(recall_at_k(ranked1, correct, 10))   # expect 1.0
-    print(recall_at_k(ranked1, correct, 1))    # expect 0.0
-    ranked2 = ["A", "P", "Q", "B", "R", "C"]
-    print(reciprocal_rank(ranked1, correct))     # expect 0.5  (A is at rank 2)
-    print(reciprocal_rank(ranked2, correct))     # expect 1.0  (A is at rank 1)
-    print(reciprocal_rank(["P", "Q"], correct))  # expect 0   (nothing correct)
-    print(ndcg_at_k(ranked1, correct, 10))   # expect about 0.619
-    print(ndcg_at_k(ranked2, correct, 10))   # expect about 0.839
+    from load_data import load_scifact
+    import random
+
+    corpus, queries, qrels = load_scifact()
+    all_ids = list(corpus)
+
+    def random_search(query_text):
+        ids = all_ids.copy()
+        random.shuffle(ids)
+        return ids[:100]
+
+    print(evaluate(random_search, queries, qrels))
+
+    text_to_id = {text: qid for qid, text in queries.items()}
+
+    def cheating_search(query_text):
+        qid = text_to_id[query_text]
+        return list(qrels[qid])
+
+    print(evaluate(cheating_search, queries, qrels))
