@@ -23,5 +23,8 @@ def build_bm25_search(corpus, use_stopwords=True, use_stemmer=True, k=100):
 
 if __name__ == "__main__":
     corpus, queries, qrels = load_scifact()
-    search = build_bm25_search(corpus)
-    print(evaluate(search, queries, qrels))
+    for use_stopwords in [True, False]:
+        for use_stemmer in [True, False]:
+            search = build_bm25_search(corpus, use_stopwords, use_stemmer)
+            result = evaluate(search, queries, qrels)
+            print("stopwords:", use_stopwords, "stemmer:", use_stemmer, result)
