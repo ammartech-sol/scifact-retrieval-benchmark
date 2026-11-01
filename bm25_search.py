@@ -27,4 +27,4 @@ if __name__ == "__main__":
         for use_stemmer in [True, False]:
             search = build_bm25_search(corpus, use_stopwords, use_stemmer)
             result = evaluate(search, queries, qrels)
-            print("stopwords:", use_stopwords, "stemmer:", use_stemmer, result)
+            print("stopwords:", use_stopwords, "stemmer:", use_stemmer, result["summary"])

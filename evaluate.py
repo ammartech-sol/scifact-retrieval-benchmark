@@ -1,4 +1,6 @@
 import math
+import time
+import numpy as np
 
 def credit(position):
     return 1 / math.log2(position + 1)
@@ -34,20 +36,26 @@ def ndcg_at_k(ranked, correct, k):
     return dcg / ideal                                    # blank 2
 
 def evaluate(search, queries, qrels):
-    recalls = []
-    rrs = []
-    ndcgs = []
+    names = ["recall@5", "recall@10", "recall@20", "mrr@100", "ndcg@10"]
+    per_query = {name: {} for name in names}
+    times_ms = []
+
     for query_id in queries:
+        start = time.perf_counter()
         ranked = search(queries[query_id])
-        correct = qrels[query_id]                    # blank 2: this query's answer key
-        recalls.append(recall_at_k(ranked, correct, 10))
-        rrs.append(reciprocal_rank(ranked, correct))
-        ndcgs.append(ndcg_at_k(ranked, correct, 10))
-    return {
-        "recall@10": sum(recalls) / len(recalls),
-        "mrr": sum(rrs) / len(rrs),
-        "ndcg@10": sum(ndcgs) / len(ndcgs),                 # blank 3: same pattern as the two lines above
-    }
+        times_ms.append((time.perf_counter() - start) * 1000)
+
+        correct = qrels[query_id]
+        per_query["recall@5"][query_id] = recall_at_k(ranked, correct, 5)
+        per_query["recall@10"][query_id] = recall_at_k(ranked, correct, 10)
+        per_query["recall@20"][query_id] = recall_at_k(ranked, correct, 20)
+        per_query["mrr@100"][query_id] = reciprocal_rank(ranked, correct)
+        per_query["ndcg@10"][query_id] = ndcg_at_k(ranked, correct, 10)
+
+    summary = {name: sum(s.values()) / len(s) for name, s in per_query.items()}
+    summary["median_ms"] = float(np.median(times_ms))
+    summary["p95_ms"] = float(np.percentile(times_ms, 95))
+    return {"summary": summary, "per_query": per_query}
 
 
 if __name__ == "__main__":
@@ -62,7 +70,7 @@ if __name__ == "__main__":
         random.shuffle(ids)
         return ids[:100]
 
-    print(evaluate(random_search, queries, qrels))
+    print(evaluate(random_search, queries, qrels)["summary"])
 
     text_to_id = {text: qid for qid, text in queries.items()}
 
@@ -70,4 +78,4 @@ if __name__ == "__main__":
         qid = text_to_id[query_text]
         return list(qrels[qid])
 
-    print(evaluate(cheating_search, queries, qrels))
+    print(evaluate(cheating_search, queries, qrels)["summary"])
