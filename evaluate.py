@@ -36,7 +36,7 @@ def ndcg_at_k(ranked, correct, k):
     return dcg / ideal                                    # blank 2
 
 def evaluate(search, queries, qrels):
-    names = ["recall@5", "recall@10", "recall@20", "mrr@100", "ndcg@10"]
+    names = ["recall@5", "recall@10", "recall@20", "recall@50", "recall@100", "mrr@100", "ndcg@10"]
     per_query = {name: {} for name in names}
     times_ms = []
 
@@ -49,6 +49,8 @@ def evaluate(search, queries, qrels):
         per_query["recall@5"][query_id] = recall_at_k(ranked, correct, 5)
         per_query["recall@10"][query_id] = recall_at_k(ranked, correct, 10)
         per_query["recall@20"][query_id] = recall_at_k(ranked, correct, 20)
+        per_query["recall@50"][query_id] = recall_at_k(ranked, correct, 50)
+        per_query["recall@100"][query_id] = recall_at_k(ranked, correct, 100)
         per_query["mrr@100"][query_id] = reciprocal_rank(ranked, correct)
         per_query["ndcg@10"][query_id] = ndcg_at_k(ranked, correct, 10)
 
